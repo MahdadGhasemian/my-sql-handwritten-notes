@@ -415,6 +415,32 @@ order by customerName;
 
 ## View
 
+By definition, a `vaiw` is a named query stored in the databse catalog.
+
+Let's create a simple customer view for their payments:
+
+```sql
+-- Define a view
+create view CustomerPaymentsView
+as
+select
+    customerName,
+    checkNumber,
+    paymentDate,
+    amount
+from
+    customers
+inner join
+    payments using (customerNumber);
+```
+
+How to use it:
+
+```sql
+-- Call it
+select * from CustomerPaymentsView;
+```
+
 ## JSON Function
 
 ## Cross Tab
