@@ -547,3 +547,35 @@ group by
 ```
 
 ## Execution Plan
+
+The output of `Explain` provides several fields that describe how MySQL executes a query :
+
+* `id`: The identifier of the select query.
+* `select_type`: The type of select query (e.g., SIMPLE, PRIMARY, etc.).
+* `table`: The table to which the row of the output refers.
+* `type`: The join type used, indicating how tables are accessed.
+* `possible_keys`: The possible indexes that could be used.
+* `key`: The actual index used.
+* `key_len`: The length of the key used.
+* `ref`: The columns used with the key.
+* `rows`: The estimated number of rows examined.
+* `Extra`: Additional information about the execution plan.
+
+Basic Execution Plan :
+
+```sql
+explain select * from customers;
+```
+
+Analyze the plan :
+
+```sql
+explain analyze
+select
+    *
+from
+    customers
+inner join
+    orders using(customerNumber)
+order by customerNumber desc;
+```
