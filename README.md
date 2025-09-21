@@ -580,7 +580,68 @@ inner join
 order by customerNumber desc;
 ```
 
-## Some queries around Producs |--> ProductDetails <--| Orders
+## Relations
+
+### Concept
+
+🔹 **1. One-to-One (1:1)**
+
+👉 Each row in Table A matches at most one row in Table B, and vice versa.
+
+**Example:**
+
+* `user` table
+* `user_profile` table (extra info, exactly one per user)
+
+**Diagram symbol (Crow’s foot notation):**
+
+```less
+[User]───||────||───[UserProfile]
+```
+
+* `||` = exactly one
+* So both sides are “exactly one” → 1:1
+
+🔹 **2. One-to-Many (1:N)**
+
+👉 A row in Table A can have many rows in Table B, but a row in Table B belongs to only one row in Table A.
+
+**Example:**
+
+* `customers` table
+* `orders` table (a customer can place many orders)
+
+**Diagram:**
+
+```less
+[Customer]───||────<───[Order]
+```
+
+* `||` = one
+* `<` (crow’s foot) = many
+* So: one customer → many orders
+
+🔹 **3. Many-to-Many (M:N)**
+
+👉 A row in Table A can match many rows in Table B, and vice versa.
+In practice, we model this with a junction table.
+
+**Example:**
+
+* `students` table
+* `courses` table
+* `student_courses` (junction) table
+
+**Diagram:**
+
+```less
+[Student]───<────||───[StudentCourse]───||────>───[Course]
+```
+
+* A student can enroll in many courses.
+* A course can have many students.
+
+### Some queries around Producs |--> ProductDetails <--| Orders
 
 Get all products in a specific order
 
