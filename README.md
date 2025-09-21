@@ -315,6 +315,8 @@ DELIMITER ;
 
 ## CTE
 
+[MySQL CTE](https://www.mysqltutorial.org/mysql-basics/mysql-cte/)
+
 A recursive Common Table Expression (CTE) is a named temporary result set that references `itself` in the recursive member.
 
 ![Elements of CTE](.images/cte.png)
