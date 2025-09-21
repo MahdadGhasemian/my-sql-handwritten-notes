@@ -443,6 +443,71 @@ select * from CustomerPaymentsView;
 
 ## JSON Function
 
+Creating a table with json column
+
+If the output is difficult to read, you can use the `json_pretty()` to format it:
+
+```sql
+select
+    name, json_pretty(properties)
+    from products_2;
+```
+
+Getting the key of json document
+
+```sql
+select json_keys(properties)
+from products_2;
+```
+
+Extracting data from a JSON document
+
+```sql
+select json_extract(properties, '$.sizes[2]')
+from products_2;
+```
+
+Checking for Multiple Paths with ‘all’ Mode
+
+```sql
+SELECT 
+    JSON_CONTAINS_PATH(
+        '{"a": 1, "b": 2, "c": {"d": 4}}', 
+        'all', '$.a', '$.e'
+    ) result;
+```
+
+Output:
+
+```txt
++--------+
+| result |
++--------+
+|      0 |
++--------+
+```
+
+Searching with the wildcard `%` in order to find out the `path`
+
+```sql
+select
+    json_search(
+        '{"name": "john", "age": 25, "username": "john@test.com"}',
+        'all',
+        'john%'
+    ) path;
+```
+
+Output:
+
+```txt
++-----------------------+
+| path                  |
++-----------------------+
+| ["$.name", "$.email"] |
++-----------------------+
+```
+
 ## Cross Tab
 
 ## Pivot
