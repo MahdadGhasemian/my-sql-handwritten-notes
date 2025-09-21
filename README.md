@@ -580,6 +580,12 @@ inner join
 order by customerNumber desc;
 ```
 
+## Events
+
+MySQL events are similar to cron jobs on Linux, providing a tool to automate recurring tasks within the MySQL database server.
+
+Events are also know as `temporal triggers` because they are triggered by time, not by the changes made to tables like triggers.
+
 ## Relations
 
 ### Concept
