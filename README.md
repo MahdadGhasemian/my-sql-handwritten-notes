@@ -579,3 +579,83 @@ inner join
     orders using(customerNumber)
 order by customerNumber desc;
 ```
+
+## Some queries around Producs |--> ProductDetails <--| Orders
+
+Get all products in a specific order
+
+```sql
+-- Get all products in a specific order
+select
+    o.orderNumber,
+    o.orderDate,
+    p.productCode,
+    od.quantityOrdered
+from orders o
+inner join orderdetails od using(orderNumber)
+inner join products p using(productCode)
+where orderNumber = 10100;
+```
+
+Get all orders that include a specific product
+
+```sql
+-- Get all orders that include a specific product
+select
+    p.productCode,
+    p.productName,
+    o.orderNumber,
+    o.orderDate,
+    od.quantityOrdered,
+    od.priceEach
+from
+    products p
+inner join orderdetails od using(productCode)
+inner join orders o using(orderNumber)
+where p.productCode = "S10_1949";
+```
+
+Calculate total revenue per order
+
+```sql
+-- Calculate total revenue per order
+select
+    o.orderNumber,
+    sum(od.quantityOrdered * od.priceEach) as orderTotal
+from
+    orders o
+inner join orderdetails od using(orderNumber)
+group by o.orderNumber;
+```
+
+Find the most sold products
+
+```sql
+-- Find the most sold products
+select
+    p.productCode,
+    p.productName,
+    sum(od.quantityOrdered) as totalSold
+from
+    products p
+inner join orderdetails od using(productCode)
+group by p.productCode, p.productName
+order by totalSold desc;
+```
+
+Join all three (complete order view)
+
+```sql
+-- Join all three (complete order view)
+SELECT 
+    o.orderNumber,
+    o.orderDate,
+    p.productName,
+    od.quantityOrdered,
+    od.priceEach,
+    (od.quantityOrdered * od.priceEach) AS lineTotal
+FROM orders o
+JOIN orderdetails od ON o.orderNumber = od.orderNumber
+JOIN products p ON od.productCode = p.productCode
+ORDER BY o.orderNumber, p.productName;
+```
