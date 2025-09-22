@@ -1,11 +1,179 @@
 # Let's deep more into the My-SQL
 
+## CTE
+
+[MySQL CTE](https://www.mysqltutorial.org/mysql-basics/mysql-cte/)
+
+A recursive Common Table Expression (CTE) is a named temporary result set that references `itself` in the recursive member.
+
+![Elements of CTE](.images/cte.png)
+
+### Example1
+
+A good example :
+
+```sql
+with recursive EmployeeHierarchy as (
+    -- Anchor
+    select
+    employee_id,
+        employee_name,
+        manager_id,
+        0 as level
+    from
+        employees_2
+    where
+        manager_id is null -- Anchor member (root of the hierarchy)
+        
+    union all
+    
+    select
+        e.employee_id,
+        e.employee_name,
+        e.manager_id,
+        eh.level + 1
+    from
+        employees_2 e
+    inner join
+        EmployeeHierarchy eh on e.manager_id = eh.employee_id -- Recursive member
+)
+-- Final query to select from the CTE
+select
+    employee_id,
+    employee_name,
+    manager_id,
+    level
+from
+    EmployeeHierarchy
+order by
+    level, employee_id;
+```
+
+Getting top sales using a CTE:
+
+```sql
+with TopSales2003CTE as (
+    select
+        salesRepEmployeeNumber employeeNumber,
+        sum(quantityOrdered * priceEach) sales
+    from
+        orders
+            inner join
+        orderdetails using (orderNumber)
+            inner join
+        customers using (customerNumber)
+    where
+        year(shippedDate) = 2003 and status = 'Shipped'
+    group by salesRepEmployeeNumber
+    order by sales desc
+    limit 5
+)
+select
+    employeeNumber,
+    firstName,
+    lastName,
+    sales
+from
+    employees
+        join
+    TopSales2003CTE using (employeeNumber);
+```
+
+Using multiple CTEs:
+
+```sql
+with SalesRep as (
+    select
+        employeeNumber,
+        concat(firstName, ' ', lastName) as salesrepName
+    from employees
+    where jobTitle = 'Sales Rep'
+),
+CustomerSalesRep as (
+    select
+        customerName, salesrepName
+    from
+        customers
+            inner join
+        SalesRep on employeeNumber = salesrepEmployeeNumber
+)
+select *
+from CustomerSalesRep
+order by customerName;
+```
+
+### Example2
+
+Let's create a simple category table
+
+```sql
+CREATE TABLE category (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50),
+    parent_id INT NULL
+);
+```
+
+Inserting a few data into the category table
+
+```txt
+id | name        | parent_id
+---+-------------+----------
+1  | Electronics | NULL
+2  | Phones      | 1
+3  | Android     | 2
+4  | iPhone      | 2
+```
+
+```sql
+insert into category (name, parent_id) values('Electronics', null);
+insert into category (name, parent_id) values('Phones', 1);
+insert into category (name, parent_id) values('Android', 2);
+insert into category (name, parent_id) values('iPhone', 2);
+```
+
+Let's create a recursive data to have path fro `3 (Android)`
+
+```sql
+with recursive pathCte as (
+    select
+        id,
+        parent_id,
+        json_array(name) as path,
+        1 as depth
+    from category
+    where id = 3 -- fro android
+    
+    union all
+    
+    SELECT
+        c.id,
+        c.parent_id,
+        JSON_ARRAY_INSERT(p.path, '$[0]', c.name),
+        p.depth + 1
+    FROM category c
+    JOIN pathCte p ON p.parent_id = c.id
+)
+select path, json_length(path) -1 as depth
+from pathCte
+order by depth desc
+limit 1;
+```
+
+Output
+
+```txt
+'[\"Electronics\", \"Phones\", \"Android\"]', '2'
+```
+
 ## Procedure
 
 [MySql Stored Procedure](https://www.mysqltutorial.org/mysql-stored-procedure/)
 [Stored Procedures](https://www.mysqltutorial.org/mysql-stored-procedure/introduction-to-sql-stored-procedures/)
 
 By definition, a stored procedure is a set of declarative SQL statements stored within the MySQL Server.
+
+### Example1
 
 A sample of creaing a prcedure:
 
@@ -81,6 +249,60 @@ How to call:
 
 ```sql
 call GetTotalOrder();
+```
+
+### Example2
+
+Let's create a procedure for our prevously cte function (category example)
+
+```sql
+DELIMITER //
+
+create procedure prcPathCte()
+begin
+    declare vDepth int;
+    declare vPath JSON;
+    
+    with recursive pathCte as (
+        select
+            id,
+            parent_id,
+            json_array(name) as path,
+            1 as depth
+        from category
+        where id = 3
+  
+        union all
+  
+        SELECT
+            c.id,
+            c.parent_id,
+            JSON_ARRAY_INSERT(p.path, '$[0]', c.name),
+            p.depth + 1
+        FROM category c
+        JOIN pathCte p ON p.parent_id = c.id
+    )
+    select path, json_length(path) -1 as depth into vPath, vDepth
+    from pathCte
+    order by depth desc
+    limit 1;
+    
+    select vPath as path, vDepth as length;
+    
+end //
+DELIMITER ;
+```
+
+Call it :
+
+```sql
+call prcPathCte();
+```
+
+Output :
+
+```txt
+'[\"Electronics\", \"Phones\", \"Android\"]', '2'
 ```
 
 ## Functions
@@ -311,106 +533,6 @@ begin
 end //
 
 DELIMITER ;
-```
-
-## CTE
-
-[MySQL CTE](https://www.mysqltutorial.org/mysql-basics/mysql-cte/)
-
-A recursive Common Table Expression (CTE) is a named temporary result set that references `itself` in the recursive member.
-
-![Elements of CTE](.images/cte.png)
-
-A good example :
-
-```sql
-with recursive EmployeeHierarchy as (
-    -- Anchor
-    select
-    employee_id,
-        employee_name,
-        manager_id,
-        0 as level
-    from
-        employees_2
-    where
-        manager_id is null -- Anchor member (root of the hierarchy)
-        
-    union all
-    
-    select
-        e.employee_id,
-        e.employee_name,
-        e.manager_id,
-        eh.level + 1
-    from
-        employees_2 e
-    inner join
-        EmployeeHierarchy eh on e.manager_id = eh.employee_id -- Recursive member
-)
--- Final query to select from the CTE
-select
-    employee_id,
-    employee_name,
-    manager_id,
-    level
-from
-    EmployeeHierarchy
-order by
-    level, employee_id;
-```
-
-Getting top sales using a CTE:
-
-```sql
-with TopSales2003CTE as (
-    select
-        salesRepEmployeeNumber employeeNumber,
-        sum(quantityOrdered * priceEach) sales
-    from
-        orders
-            inner join
-        orderdetails using (orderNumber)
-            inner join
-        customers using (customerNumber)
-    where
-        year(shippedDate) = 2003 and status = 'Shipped'
-    group by salesRepEmployeeNumber
-    order by sales desc
-    limit 5
-)
-select
-    employeeNumber,
-    firstName,
-    lastName,
-    sales
-from
-    employees
-        join
-    TopSales2003CTE using (employeeNumber);
-```
-
-Using multiple CTEs:
-
-```sql
-with SalesRep as (
-    select
-        employeeNumber,
-        concat(firstName, ' ', lastName) as salesrepName
-    from employees
-    where jobTitle = 'Sales Rep'
-),
-CustomerSalesRep as (
-    select
-        customerName, salesrepName
-    from
-        customers
-            inner join
-        SalesRep on employeeNumber = salesrepEmployeeNumber
-)
-select *
-from CustomerSalesRep
-order by customerName;
 ```
 
 ## View
