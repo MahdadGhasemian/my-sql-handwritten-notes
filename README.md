@@ -1,4 +1,4 @@
-# Let's deep more into the My-SQL
+# Let's dive into My-SQL
 
 ## CTE
 
